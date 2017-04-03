@@ -1,0 +1,114 @@
+---
+title: "DATA621-Week3-Homework1"
+author: "Muthukumar Srinivasan 7 Rajagopal Srinivasan"
+date: "March 19, 2017"
+output: pdf_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(knitr)
+library(ggplot2)
+require(gridExtra)
+
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+##############---(1) DATA EXPLORATION---------------##########
+
+require(ggplot2)
+mb_train <- read.csv("moneyball-training-data.csv",header=TRUE)
+attach(mb_train)
+# describe structure of dataset
+str(mb_train)
+# Multi variable corelation of dataset
+mb_cor <- cor(mb_train[,3:17])
+round(mb_cor, 3)
+# Standard Deviation of dataset
+sd(TEAM_BATTING_H)
+sd(TEAM_BATTING_2B)
+sd(TEAM_BATTING_3B)
+sd(TEAM_BATTING_HR)
+sd(TEAM_BATTING_BB)
+sd(TEAM_BATTING_SO)
+sd(TEAM_BASERUN_SB)
+sd(TEAM_BASERUN_CS)
+sd(TEAM_BATTING_HBP)
+sd(TEAM_PITCHING_H)
+sd(TEAM_PITCHING_HR)
+sd(TEAM_PITCHING_BB)
+sd(TEAM_PITCHING_SO)
+sd(TEAM_FIELDING_E)
+sd(TEAM_FIELDING_DP)
+
+mean(TEAM_BATTING_H)
+mean(TEAM_BATTING_2B)
+mean(TEAM_BATTING_3B)
+mean(TEAM_BATTING_HR)
+mean(TEAM_BATTING_BB)
+mean(TEAM_BATTING_SO)
+mean(TEAM_BASERUN_SB)
+mean(TEAM_BASERUN_CS)
+mean(TEAM_BATTING_HBP)
+mean(TEAM_PITCHING_H)
+mean(TEAM_PITCHING_HR)
+mean(TEAM_PITCHING_BB)
+mean(TEAM_PITCHING_SO)
+mean(TEAM_FIELDING_E)
+mean(TEAM_FIELDING_DP)
+
+#  Deviation of dataset
+summary(mb_train)
+str(mb_train)
+
+#  Sample Scatter between two columns variables. of dataset
+qplot(mb_train$TEAM_BATTING_H,mb_train$TEAM_BATTING_2B,data=mb_train)
+qplot(mb_train$TEAM_BATTING_2B,mb_train$TEAM_BATTING_3B,data=mb_train)
+
+qplot(mb_train$TEAM_BATTING_H,mb_train$TEAM_BATTING_2B,data=mb_train,geom="boxplot")
+qplot(mb_train$TEAM_BATTING_2B,data=mb_train,geom="histogram")
+
+qplot(mb_train$TEAM_BATTING_H,data=mb_train,geom="bar")
+```
+```{r, echo=FALSE}
+##############---(3) DATA MODEL---------------##########
+
+m_full <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_2B + TEAM_BATTING_3B + TEAM_BATTING_HR + TEAM_BATTING_BB + TEAM_BATTING_SO
++ TEAM_BASERUN_SB + TEAM_BASERUN_CS + TEAM_BATTING_HBP + TEAM_PITCHING_H + TEAM_PITCHING_HR + TEAM_PITCHING_BB + TEAM_PITCHING_SO + TEAM_FIELDING_E + TEAM_FIELDING_DP, data = mb_train)
+
+summary(m_full)
+
+plot(mb_train)
+
+qplot(mb_train$TEAM_BATTING_H,mb_train$TEAM_BATTING_2B)
+qplot(mb_train$TEAM_BATTING_H,mb_train$TEAM_BATTING_3B)
+
+```
+
+```{r, echo=FALSE}
+
+##############---(4) SELECT MODEL---------------##########
+
+
+model1 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_2B + TEAM_BATTING_3B + TEAM_BATTING_HR + TEAM_BATTING_BB + TEAM_BATTING_SO
++ TEAM_BASERUN_SB + TEAM_BATTING_HBP + TEAM_PITCHING_H + TEAM_PITCHING_HR + TEAM_PITCHING_BB + TEAM_PITCHING_SO + TEAM_FIELDING_E + TEAM_FIELDING_DP, data = mb_train)
+summary(model1)
+
+model2 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_2B + TEAM_BATTING_3B + TEAM_BATTING_HR + TEAM_BATTING_BB + TEAM_BATTING_SO
++ TEAM_BASERUN_SB + TEAM_BATTING_HBP + TEAM_PITCHING_H + TEAM_PITCHING_BB + TEAM_PITCHING_SO + TEAM_FIELDING_E + TEAM_FIELDING_DP, data = mb_train)
+summary(model2)
+
+model3 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_2B + TEAM_BATTING_3B + TEAM_BATTING_HR + TEAM_BATTING_BB + TEAM_BATTING_SO
++ TEAM_BASERUN_SB +  TEAM_PITCHING_H + TEAM_PITCHING_BB + TEAM_PITCHING_SO + TEAM_FIELDING_E + TEAM_FIELDING_DP, data = mb_train)
+summary(model3)
+
+
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
