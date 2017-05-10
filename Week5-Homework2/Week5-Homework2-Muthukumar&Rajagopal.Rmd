@@ -1,0 +1,152 @@
+---
+title: "Muthkumar&Rajagopal-Data621-Homework2"
+author: "Muthukumar Srinivasan & Rajagopal Srinivasan"
+date: "May 7, 2017"
+output: pdf_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library("pROC")
+library("caret")
+
+########MUTHUKUMAR SRINIVASAN & RAJAGOPAL SRINIVASAN ##########
+######## WEEK5 HOMEWORKD 2 - SUBMISSION########################
+
+####  Instruction : 1 - Week5-Homework 2
+#### - Downloaded data and uploaded them into our GitHub. got the raw data and used through http protocol to read it
+
+data<-read.csv("https://raw.githubusercontent.com/muthukumars/DATA-621/master/Week5-Homework2/classification-output-data.csv")
+head(data)
+summary(data)
+
+####Table of Scored vs Class
+####  Instruction : 2 - Week5-Homework 2
+#### -User table function to get raw data to table
+
+tab<-table(data$class,data$scored.class)
+colnames(tab)<-c("Real Negative","Real Positive")
+rownames(tab)<-c("Model Negative","Model Positive")
+tab
+head(tab)
+tail(tab)
+summary(tab)
+
+####  Instruction : 3 - Week5-Homework 2
+####All Metrics Function (Problems 3-8)
+
+allmetrics<-function(data,predictMethod){
+  
+  tab <- table(data$class,data$scored.class)
+  tn<-tab[1,1]
+  tp<-tab[2,2]
+  fn<-tab[2,1]
+  fp<-tab[1,2]
+
+  ####All Metrics Function Problems 3    
+  if (predictMethod=='Accuracy'){
+    calcAccuracy<-(tp+tn)/(tp+tn+fn+fp)
+    print ("Solution for Problem 3:")
+    return(calcAccuracy)
+  }
+  
+  ####All Metrics Function Problems 4    
+  if (predictMethod=='ErrorRate'){
+    calcErrorRate<-(fp+fn)/(tp+tn+fn+fp)
+    print ("Solution for Problem 4:")
+    return(calcErrorRate)
+    
+  }
+  
+  ####All Metrics Function Problems 5    
+  if (predictMethod=='Precision'){
+    calcPrecision<-(tp)/(tp+fp)
+    print ("Solution for Problem 5:")
+    return(calcPrecision)
+  }
+  
+  ####All Metrics Function Problems 6    
+  if (predictMethod=='Sensitivity'){
+    calcSensitivity<-(tp)/(tp+fn)
+    print ("Solution for Problem 6:")
+    return(calcSensitivity)
+  }
+  
+  ####All Metrics Function Problems 7    
+  if (predictMethod=='Specificity'){
+    calcSpecificity<-(tn)/(tn+fp)
+    print ("Solution for Problem 7:")
+    return(calcSpecificity)
+  }
+}
+
+allmetrics(data,'Accuracy')  
+allmetrics(data,'ErrorRate')
+allmetrics(data,'Precision')
+allmetrics(data,'Sensitivity')
+allmetrics(data,'Specificity')
+
+####  Instruction : 3 - Week5-Homework 2
+####All Metrics Function Problems 10
+
+  ROC_Scott<- function(data,t) {
+
+  se<-0
+  sp<-0
+  a<-0
+  for (i in 1:round(1/t))
+  {
+  
+  se[i]<-sensitivity(reference=as.factor(data$class),data=as.factor(as.numeric(data$scored.probability > 0.01*i)))
+  sp[i]<-specificity(reference=as.factor(data$class),data=as.factor(as.numeric(data$scored.probability > 0.01*i)))
+  a[i]<-t/2*(sp[i+1]+se[i])
+  }
+
+  ## Area of rectangles
+  b1<-se[-1]
+  b2<-se[-round(1/t)]
+  x1<-sp[-1]
+  x2<-sp[-round(1/t)]
+
+  auc<-sum(b1*(x2-x1))
+  plot(y=se,x=1-sp,xlab="1-Specificity",ylab="Sensitivity",main = "Scott ROC",type="l")
+  return(paste0("AUC=",round(auc,3)))
+}
+
+ROC_Scott(data,t=0.01)
+
+####  Instruction : 3 - Week5-Homework 2
+####All Metrics Function Problems 11
+###########*************************************PROBLEM 11***************
+ACCU<-allmetrics(data,'Accuracy')  
+ERROR<-allmetrics(data,'ErrorRate')
+PREC<-allmetrics(data,'Precision')
+SENS<-allmetrics(data,'Sensitivity')
+SPEC<-allmetrics(data,'Specificity')
+F1<-2*PREC*SENS/(PREC+SENS)
+
+print(paste0("Accurancy Value->>>>>: ", ACCU))
+print(paste0("Classification Error Rate->>>>>: ", ERROR))
+print(paste0("Precision Value->>>>>: ", ACCU))
+print(paste0("Sensitivity Value->>>>>: ", SENS))
+print(paste0("Specificity Value->>>>>: ", SPEC))
+print(paste0("F1 SCORE->>>>>: ", F1))
+
+####  Instruction : 3 - Week5-Homework 2
+####All Metrics Function Problems 12
+###########*************************************PROBLEM 11***************
+confusionMatrix(data=data$scored.class,reference = data$class)
+
+####  Instruction : 3 - Week5-Homework 2
+####All Metrics Function Problems 13
+###########*************************************PROBLEM 11***************
+
+roc(data$class, data$scored.probability,plot=TRUE)
+
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
