@@ -1,0 +1,152 @@
+---
+title: "Muthukumar Srinivasan & Rajagopal Srinivasan-Week8-Homework3"
+author: "Muthukumar Srinivasan & Rajagopal Srinivasan"
+date: "May 20, 2017"
+output: pdf_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+##############(1) DATA EXPLORATION OF BOTH TRAINING AND EVALUATION DATA SET
+###############EVALUATION DATA SET###########
+library("pastecs")
+
+trgData<-read.csv("https://raw.githubusercontent.com/muthukumars/DATA-621/master/Week8-Homework3/crime-training-data.csv")
+str(trgData)
+names(trgData)
+head(trgData)
+summary(trgData)
+stat.desc(trgData)
+
+
+trgData[!complete.cases(trgData),]
+
+print(paste0("Number of rows of Trainng Data Set->>>>>: ", nrow(trgData)))
+print(paste0("Number of columns of Trainng Data Set->>>>>: ", ncol(trgData)))
+cor(trgData)
+
+evalData<-read.csv("https://raw.githubusercontent.com/muthukumars/DATA-621/master/Week8-Homework3/crime-evaluation-data.csv")
+str(evalData)
+names(evalData)
+head(evalData)
+summary(evalData)
+cor(evalData)
+stat.desc(trgData)
+
+print(paste0("Number of rows of Evaluation Data Set->>>>>: ", nrow(evalData)))
+print(paste0("Number of columns of Evaluation Data Set->>>>>: ", ncol(evalData)))
+
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+
+##############(2) DATA PREPARATION OF BOTH TRAINING AND EVALUATION DATA SET
+###############PREPARTION OF DATA SET###########
+library("funModeling")
+
+##########Data validation of all columns and rows
+
+df_status(trgData)
+df_status(evalData)
+
+######## checking whether any cell has NA or Infinite
+apply(trgData, 2, function(x) any(is.na(x)))
+apply(evalData, 2, function(x) any(is.na(x)))
+
+######## Put them into individual buckets of each column  or combined for Training Data ONLY
+
+bucket.zn<-trgData[,'zn']
+summary(bucket.zn)
+bucket.zn
+
+bucket.indus<-trgData[,'indus']
+summary(bucket.indus)
+bucket.indus
+
+bucket.zn.indus<-cbind(trgData$zn,trgData$indus)
+summary(bucket.zn.indus)
+bucket.zn.indus
+
+```
+
+```{r, echo=FALSE}
+
+
+##############(3) DATA VISUALIZATION OF TRAINING DATA SET
+###############VISUALIZATION###########
+library("ggplot2")
+library("corrgram")
+
+ggplot(trgData, aes(zn, black)) + geom_point() + scale_x_continuous("zn", breaks = seq(0,0.35,0.05))+ scale_y_continuous("black", breaks = seq(0,270,by = 30))+ theme_bw() 
+
+ggplot(trgData, aes(age, black)) + geom_point() + scale_x_continuous("age", breaks = seq(0,0.35,0.05))+ scale_y_continuous("black", breaks = seq(0,270,by = 30))+ theme_bw() 
+
+
+corrgram(trgData, order=NULL, panel=panel.shade, text.panel=panel.txt, main="Correlogram")
+
+ggplot(trgData, aes(zn, fill =black )) + geom_bar()+labs(title = "Stacked Bar Chart", x = "zn", y = "black")
+
+ggplot(trgData, aes(x = zn)) + geom_density() #right-skewed normal
+ggplot(trgData, aes(x = indus)) + geom_density() #NOT normal
+ggplot(trgData, aes(x = nox)) + geom_density() #Poisson
+ggplot(trgData, aes(x = rm)) + geom_density() #normal
+ggplot(trgData, aes(x = age)) + geom_density() #some other distribution, seems wrong
+ggplot(trgData, aes(x = dis)) + geom_density() #Poisson
+ggplot(trgData, aes(x = rad)) + geom_density() #Nor normal - two humps
+ggplot(trgData, aes(x = tax)) + geom_density() #Not normal (two humps)
+ggplot(trgData, aes(x = ptratio)) + geom_density() #severely left skewed
+
+boxplot(zn~target, data=trgData, ylab="zn",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(indus~target, data=trgData, ylab="indus",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(chas~target, data=trgData, ylab="chas",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(nox~target, data=trgData, ylab="nox",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(rm~target, data=trgData, ylab="rm",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(dis~target, data=trgData, ylab="dis",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(age~target, data=trgData, ylab="age",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(dis~target, data=trgData, ylab="dis",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(rad~target, data=trgData, ylab="rad",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(tax~target, data=trgData, ylab="tax",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(ptratio~target, data=trgData, ylab="ptratio",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(black~target, data=trgData, ylab="black",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(lstat~target, data=trgData, ylab="lstat",xlab="Above median crime rate? (0=No, 1=Yes)")
+boxplot(medv~target, data=trgData, ylab="medv",xlab="Above median crime rate? (0=No, 1=Yes)")
+
+pairs(~zn+indus+nox+rm+age+dis+rad+tax+ptratio,data=trgData,gap=0.4,cex.labels=1.5,col='red')
+
+```
+
+
+```{r, echo=FALSE}
+
+##############(4) BUILD AND SELECT MODELS.OF TRAINING DATA SET
+
+library(leaps)
+
+crimefit.full <-regsubsets(target~.,data=trgData,nvmax=14) # cosidering all 14 variables to find the best fit subsets regression model
+
+summary(crimefit.full)
+crime.summary=summary(crimefit.full)
+names(crime.summary)
+plot(crime.summary$cp,xlab="Number of Variables", ylab="Cp")    # plot the graph to show the Cp value with respect to 14 variable, Lowest Cp value is considered as number of variables relevant for the best subset regression model
+
+which.min(crime.summary$cp) # This help to provide the exact number of variables
+
+points(5,crime.summary$cp[5],pch=20,col="red")       # visual highlight to the number of variables needed for the best fit model
+
+plot(crimefit.full,scale="Cp") # this gives a visual display of all the variables to see the data consistency acros all variables and lowest Cp data is at the top and variable less relevant have higher Cp value and they are at the bottom
+coef(crimefit.full,5) # this gives the details of intercept and coefcient factors for all relevant 5 variables for the model
+
+bestsubsetModel1 <- glm(target ~ nox + age + rad + ptratio + medv, family=binomial, data = trgData) # glm package is used to build the model
+summary(bestsubsetModel1) 
+
+
+
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
