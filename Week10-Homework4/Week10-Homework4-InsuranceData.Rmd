@@ -1,0 +1,132 @@
+---
+title: "Muthukumar Srinivasan & Rajagopal Srinivasan Homework 4-Week10"
+author: "Muthukumar Srinivasan & Rajagopal Srinivasan"
+date: "May 20, 2017"
+output: pdf_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+##############(1) DATA EXPLORATION OF BOTH TRAINING AND EVALUATION DATA SET
+###############EVALUATION DATA SET###########
+
+library("pastecs")
+
+trgData<-read.csv("https://raw.githubusercontent.com/muthukumars/DATA-621/master/Week10-Homework4/insurance_training_data.csv")
+str(trgData)
+names(trgData)
+head(trgData)
+summary(trgData)
+#stat.desc(trgData)
+
+trgData[!complete.cases(trgData),]
+
+print(paste0("Number of rows of Trainng Data Set->>>>>: ", nrow(trgData)))
+print(paste0("Number of columns of Trainng Data Set->>>>>: ", ncol(trgData)))
+
+```
+
+
+```{r}
+
+##############(2) DATA PREPARATION OF BOTH TRAINING AND EVALUATION DATA SET
+###############PREPARTION OF DATA SET###########
+library("funModeling")
+library("dplyr")
+library(Amelia)
+
+##########Data validation of all columns and rows
+
+df_status(trgData)
+
+
+######## checking whether any cell has NA or Infinite
+apply(trgData, 2, function(x) any(is.na(x)))
+
+######## Put them into individual buckets of each column  or combined for Training Data ONLY
+
+
+bucket.YOJ<-trgData[,'YOJ']
+summary(bucket.YOJ)
+bucket.YOJ
+
+bucket.AGE<-trgData[,'AGE']
+summary(bucket.AGE)
+#bucket.indus
+
+bucket.EDUCATION.JOB<-cbind(trgData$EDUCATION,trgData$JOB)
+summary(bucket.EDUCATION.JOB)
+#bucket.zn.indus
+
+glimpse(trgData)
+
+missmap(trgData)
+
+missmap(trgData, legend = TRUE, main = "Missing Values vs Observed", col =  c("white", "black"))
+
+
+```
+
+
+
+```{r, echo=FALSE}
+
+##############(3) DATA VISUALIZATION OF TRAINING DATA SET
+###############VISUALIZATION###########
+library("ggplot2")
+library("corrgram")
+library(stringr)
+library(PerformanceAnalytics)
+
+summary(trgData$TARGET_FLAG)
+hist(trgData$TARGET_FLAG)
+
+summary(trgData$TARGET_AMT)
+hist(trgData$TARGET_AMT)
+
+blue_book <- unname(sapply(trgData$BLUEBOOK, str_replace_all, '[,$]', ''))
+blue_book <- as.numeric(blue_book)
+
+income <- unname(sapply(trgData$INCOME, str_replace_all, '[,$]', ''))
+income <- as.numeric(income)
+
+home_val <- unname(sapply(trgData$HOME_VAL, str_replace_all, '[,$]', ''))
+home_val <- as.numeric(home_val)
+
+old_claim <- unname(sapply(trgData$OLDCLAIM, str_replace_all, '[,$]', ''))
+old_claim <- as.numeric(old_claim)
+
+trgData$BLUEBOOK <- blue_book
+trgData$INCOME <- income
+trgData$HOME_VAL <- home_val
+trgData$OLDCLAIM <- old_claim
+
+trgdata2 <- trgData[,-c(1,2,3,9,11,12,13,14,16,19,20,23,26)]
+chart.Correlation(trgdata2)
+
+```
+```{r, echo=FALSE}
+
+##############(4) BUILD MODEL
+##########################
+
+### StepWIse - Backward Logistocs Regression 
+
+fit.log <- stats::glm(TARGET_FLAG ~ .-TARGET_AMT , family=binomial(), data =trgData)
+model.backward.step.log = step(fit.log , trace = TRUE) 
+
+summary(model.backward.step.log) 
+formula(model.backward.step.log)
+
+par(mfrow=c(2, 2))
+graphics::plot(model.backward.step.log, main="Stepwise Backward Logistic Regression")
+
+```
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
