@@ -1,0 +1,148 @@
+---
+title: "Week13-Homework5-MuthukumarSrinivasanAndRajagopalSrinivasan"
+author: "Muthukumar Srinivasan & Rajagopal Srinivasan"
+date: "May 21, 2017"
+output: pdf_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+##01-Data Exploration
+
+library("pastecs")
+library(pander)
+library(e1071)
+library(funModeling)
+library("dplyr")
+library(Amelia)
+library(corrplot)
+
+
+trgData<-read.csv("https://raw.githubusercontent.com/muthukumars/DATA-621/master/Week13-Homework5/wine-training-data.csv")
+trgDataRemovedIndex<-trgData[-1] #remove index column
+
+str(trgDataRemovedIndex)
+names(trgDataRemovedIndex)
+head(trgDataRemovedIndex)
+summary(trgDataRemovedIndex)
+
+means <- sapply(trgDataRemovedIndex, function(y) mean(y, na.rm = TRUE))
+mins <- sapply(trgDataRemovedIndex, function(y) min(y, na.rm=TRUE))
+medians <- sapply(trgDataRemovedIndex, function(y) median(y, na.rm = TRUE))
+maxs <- sapply(trgDataRemovedIndex, function(y) max(y, na.rm=TRUE))
+IQRs <- sapply(trgDataRemovedIndex, function(y) IQR(y, na.rm = TRUE))
+SDs <- sapply(trgDataRemovedIndex, function(y) sd(y, na.rm = T))
+
+skews <- sapply(trgDataRemovedIndex, function(y) skewness(y, na.rm = TRUE))
+cors <- as.vector(cor(trgDataRemovedIndex$TARGET, trgDataRemovedIndex[ , 1:ncol(trgDataRemovedIndex)], use = "complete.obs"))
+NAs <- sapply(trgDataRemovedIndex, function(y) sum(length(which(is.na(y)))))
+
+datasummary <- data.frame(means, mins, medians, maxs, IQRs, SDs, skews, cors, NAs)
+colnames(datasummary) <- c("MEAN", "MIN","MEDIAN", "MAX", "IQR", "STD. DEV","SKEW", "$r_{TARGET}$", "NAs")
+datasummary <- round(datasummary, 2)
+pander(datasummary)
+
+
+#Correlation Matrix for the data with Index column removed
+correlationCoeff<-cor(trgDataRemovedIndex)
+correlationCoeff
+
+
+```
+
+```{r, echo=FALSE}
+df_status(trgData)
+missmap(trgData, legend = TRUE, main = "Missing Values vs Observed", col =  c("white", "red"))
+
+```
+
+```{r, echo=FALSE}
+library("ggplot2")
+library("corrgram")
+library(stringr)
+library(PerformanceAnalytics)
+library(pander)
+
+
+##############(3) DATA VISUALIZATION OF TRAINING DATA SET
+###############VISUALIZATION###########
+
+summary(trgDataRemovedIndex$TARGET)
+hist(trgData$TARGET)
+
+summary(trgDataRemovedIndex$CitricAcid)
+hist(trgDataRemovedIndex$CitricAcid)
+
+ph <- unname(sapply(trgDataRemovedIndex$pH, str_replace_all, '[,$]', ''))
+ph <- as.numeric(ph)
+
+alcohol <- unname(sapply(trgDataRemovedIndex$Alcohol, str_replace_all, '[,$]', ''))
+alcohol <- as.numeric(alcohol)
+
+fixedacidity <- unname(sapply(trgDataRemovedIndex$FixedAcidity, str_replace_all, '[,$]', ''))
+fixedacidity <- as.numeric(fixedacidity)
+
+volatileacidity <- unname(sapply(trgDataRemovedIndex$VolatileAcidity, str_replace_all, '[,$]', ''))
+volatileacidity <- as.numeric(volatileacidity)
+
+trgDataRemovedIndex$pH <- ph
+trgDataRemovedIndex$Alcohol <- alcohol
+trgDataRemovedIndex$FixedAcidity <- fixedacidity
+trgDataRemovedIndex$VolatileAcidity <- volatileacidity
+
+####CORRELATION BETWEEN VARIABLES - few samples
+
+trgdata2 <- trgDataRemovedIndex[,-c(2,3,4,5,6,7,8,9,10,11,12,13,14)]
+chart.Correlation(trgdata2)
+trgdata2 <- trgDataRemovedIndex[,-c(1,3,4,5,6,7,8,9,10,11,12,13,14)]
+chart.Correlation(trgdata2)
+trgdata2 <- trgDataRemovedIndex[,-c(1,2,4,5,6,7,8,9,10,11,12,13,14)]
+chart.Correlation(trgdata2)
+trgdata2 <- trgDataRemovedIndex[,-c(1,2,3,5,6,7,8,9,10,11,12,13,14)]
+chart.Correlation(trgdata2)
+trgdata2 <- trgDataRemovedIndex[,-c(1,2,3,5,6,7,8,9,10,11,12,13,14)]
+chart.Correlation(trgdata2)
+
+###### Correlation Matrix plotted
+
+corrplot(correlationCoeff, method = "circle")
+corrplot(correlationCoeff, method = "number")
+corrplot(correlationCoeff, method = "ellipse")
+
+hist(trgDataRemovedIndex$TARGET, col="green")
+hist(trgDataRemovedIndex$Density, col="green")
+hist(trgDataRemovedIndex$pH, col="green")
+
+
+```
+
+```{r, echo=FALSE}
+############Data Model
+###Full model using Poisson regression 
+####and all 14 of the predictors is built:
+
+model0 <- (glm(TARGET ~ ., family="poisson", data=trgDataRemovedIndex))
+pander(summary(model0))
+
+###### MODEL 1 -Reduced Model - considering few variables
+
+model1 <- glm(TARGET ~ VolatileAcidity + Chlorides + FreeSulfurDioxide + TotalSulfurDioxide + LabelAppeal + AcidIndex + STARS + Alcohol + Density + Sulphates + pH, family="poisson", data=trgDataRemovedIndex)
+pander(summary(model1))
+
+##### Model 2 - Significantly reduced Model
+model2 <- (glm(TARGET ~ LabelAppeal + AcidIndex + STARS, family=poisson, data=trgDataRemovedIndex))
+pander(summary(model2))
+
+```
+
+```{r, echo=FALSE}
+```
+
+```{r, echo=FALSE}
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
